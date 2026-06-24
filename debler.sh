@@ -48,20 +48,30 @@ echo "----------------------"
 cat $WORK_FOLDER/control_tar/control
 echo "----------------------"
 
+read -p "Install package? [Y/n]: " response
+response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
+if [[ -z "$response" || "$response" == "y" || "$response" == "yes" ]]; then
+    echo "ok..."
+
+else
+    echo "[-] Cancelled."
+    exit 0
+fi
 
 
-# echo "[+] Extracting data.."
-# mkdir $WORK_FOLDER/data_tar/
-# files=($WORK_FOLDER/data.tar.*)
+echo "[+] Extracting data.."
+mkdir $WORK_FOLDER/data_tar/
+files=($WORK_FOLDER/data.tar.*)
 
-# if [ -e "${files[0]}" ]; then
-#     echo "Первый найденный файл data: ${files[0]}" > $LOG_FILE
-#     tar -xvf "${files[0]}" -C $WORK_FOLDER/data_tar/ > /dev/null 2>&1
-# else
-#     echo "[-] ERROR: Corrupted package! No data.tar found"
-#     exit 1
-# fi
+if [ -e "${files[0]}" ]; then
+    echo "Первый найденный файл data: ${files[0]}" > $LOG_FILE
+    tar -xvf "${files[0]}" -C $WORK_FOLDER/data_tar/ > /dev/null 2>&1
+else
+    echo "[-] ERROR: Corrupted package! No data.tar found"
+    exit 1
+fi
 
 echo ""
 echo "---"
 echo "[*] Package installed successfully."
+exit 0
