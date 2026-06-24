@@ -15,7 +15,7 @@ FILE_PATH="$1"
 shift # Сдвигаем аргументы, чтобы обрабатывать флаги дальше
 
 
-root check
+#root check
 if [[ $EUID -ne 0 ]]; then
    echo "[-] ERROR: Must be run as root."
    exit 1
@@ -36,7 +36,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - ok" >> "$LOG_FILE"
 
 echo "[+] Extracting control.."
 mkdir "$WORK_FOLDER/control_tar/"
-files=("$WORK_FOLDER/control.tar.*")
+files=($WORK_FOLDER/control.tar.*)
 
 if [ -e "${files[0]}" ]; then
     echo "$(date '+%Y-%m-%d %H:%M:%S') - control file: ${files[0]}" >> $LOG_FILE
@@ -50,13 +50,13 @@ MS_POSTINST=0
 MS_PREINST=0
 
 # CHECKING maintscripts
-for file in "$WORK_FOLDER/control_tar/*"; do
+for file in $WORK_FOLDER/control_tar/*; do
     # Проверяем, существует ли файл
     [ -e "$file" ] || continue
 
     echo "$(date '+%Y-%m-%d %H:%M:%S') - CMS file found: $file" >> "$LOG_FILE"
 
-    case "$file" in
+    case $(basename $file) in
         "postinst")
             MS_POSTINST=1
             ;;
@@ -97,7 +97,7 @@ fi
 
 echo "[+] Extracting data.."
 mkdir "$WORK_FOLDER/data_tar/"
-files=("$WORK_FOLDER/data.tar.*")
+files=($WORK_FOLDER/data.tar.*)
 
 if [ -e "${files[0]}" ]; then
     echo "$(date '+%Y-%m-%d %H:%M:%S') - data file: ${files[0]}" >> $LOG_FILE
@@ -129,7 +129,7 @@ done
 
 echo "[+] Copying data to system.."
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Copying data to /.." >> "$LOG_FILE"
-rsync -aHAXx --info=progress2 "$WORK_FOLDER"/data_tar/ /s
+rsync -aHAXx --info=progress2 "$WORK_FOLDER"/data_tar/ /
 
 
 # postinst
