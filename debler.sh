@@ -46,6 +46,29 @@ else
     exit 1
 fi
 
+MS_POSTINST=0
+MS_PREINST=0
+
+# CHECKING maintscripts
+for file in $WORK_FOLDER/control_tar/*; do
+    # Проверяем, существует ли файл
+    [ -e "$file" ] || continue
+
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - CMS file found: $file" >> "$LOG_FILE"
+
+    case "$file" in
+        "postinst")
+            MS_POSTINST=1
+            ;;
+        "preinst")
+            MS_PREINST=1
+            ;;
+        *)
+            # default
+            ;;
+    esac
+done
+
 echo "----------------------"
 cat $WORK_FOLDER/control_tar/control
 echo "----------------------"
@@ -60,6 +83,17 @@ else
     exit 0
 fi
 
+# preinst
+if [ $MS_PREINST -eq 1 ]; then
+
+    read -p "[?] PREINST script found ($WORK_FOLDER/control_tar/preinst). Run it? [Y/n]: " answer
+    if [[ -z "$answer" || "$answer" =~ ^[Yy] ]]; then
+        echo "[+] Running preinst..."
+        $WORK_FOLDER/control_tar/preinst 
+        echo "[*] Done."
+    fi
+
+fi
 
 echo "[+] Extracting data.."
 mkdir $WORK_FOLDER/data_tar/
@@ -75,7 +109,20 @@ fi
 
 echo "[+] Copying data to system.."
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Copying data to /.." >> "$LOG_FILE"
-rsync -aHAXx --info=progress2 $WORK_FOLDER/data_tar/ /
+rsync -aHAXx --info=progress2 $WORK_FOLDER/data_tar/ /s
+
+
+# postinst
+if [ $MS_POSTINST -eq 1 ]; then
+
+    read -p "[?] POSTINST script found ($WORK_FOLDER/control_tar/postinst). Run it? [Y/n]: " answer
+    if [[ -z "$answer" || "$answer" =~ ^[Yy] ]]; then
+        echo "[+] Running postinst..."
+        $WORK_FOLDER/control_tar/postinst configure 
+        echo "[*] Done."
+    fi
+    
+fi
 
 echo ""
 echo "---"
