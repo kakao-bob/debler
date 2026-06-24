@@ -35,8 +35,8 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - ok" >> "$LOG_FILE"
 
 
 echo "[+] Extracting control.."
-mkdir $WORK_FOLDER/control_tar/
-files=($WORK_FOLDER/control.tar.*)
+mkdir "$WORK_FOLDER/control_tar/"
+files=("$WORK_FOLDER/control.tar.*")
 
 if [ -e "${files[0]}" ]; then
     echo "$(date '+%Y-%m-%d %H:%M:%S') - control file: ${files[0]}" >> $LOG_FILE
@@ -50,7 +50,7 @@ MS_POSTINST=0
 MS_PREINST=0
 
 # CHECKING maintscripts
-for file in $WORK_FOLDER/control_tar/*; do
+for file in "$WORK_FOLDER/control_tar/*"; do
     # Проверяем, существует ли файл
     [ -e "$file" ] || continue
 
@@ -70,7 +70,7 @@ for file in $WORK_FOLDER/control_tar/*; do
 done
 
 echo "----------------------"
-cat $WORK_FOLDER/control_tar/control
+cat "$WORK_FOLDER/control_tar/control"
 echo "----------------------"
 
 read -p "Install package? [Y/n]: " response
@@ -89,15 +89,15 @@ if [ $MS_PREINST -eq 1 ]; then
     read -p "[?] PREINST script found ($WORK_FOLDER/control_tar/preinst). Run it? [Y/n]: " answer
     if [[ -z "$answer" || "$answer" =~ ^[Yy] ]]; then
         echo "[+] Running preinst..."
-        $WORK_FOLDER/control_tar/preinst 
+        "$WORK_FOLDER/control_tar/preinst"
         echo "[*] Done."
     fi
 
 fi
 
 echo "[+] Extracting data.."
-mkdir $WORK_FOLDER/data_tar/
-files=($WORK_FOLDER/data.tar.*)
+mkdir "$WORK_FOLDER/data_tar/"
+files=("$WORK_FOLDER/data.tar.*")
 
 if [ -e "${files[0]}" ]; then
     echo "$(date '+%Y-%m-%d %H:%M:%S') - data file: ${files[0]}" >> $LOG_FILE
@@ -107,18 +107,38 @@ else
     exit 1
 fi
 
+
+# checking folders..
+for folder in "$WORK_FOLDER"/data_tar/*; do
+    if [ -d "$folder" ]; then
+        folder_bn=$(basename "$folder")
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - CF found: $folder_bn" >> $LOG_FILE
+
+
+        if [[ ! "$folder_bn" =~ ^(usr|opt|etc|var)$ ]]; then
+            echo "ERROR: /$folder_bn is not a standard part of a .deb package."
+            echo "This .deb file may be malware or formatted incorrectly. Cancelling install!"
+            
+            # logging
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - CRITICAL: Suspicious folder /$folder_bn found. Aborting." >> "$LOG_FILE"
+            
+            exit 1
+        fi
+    fi
+done
+
 echo "[+] Copying data to system.."
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Copying data to /.." >> "$LOG_FILE"
-rsync -aHAXx --info=progress2 $WORK_FOLDER/data_tar/ /s
+rsync -aHAXx --info=progress2 "$WORK_FOLDER"/data_tar/ /s
 
 
 # postinst
 if [ $MS_POSTINST -eq 1 ]; then
 
-    read -p "[?] POSTINST script found ($WORK_FOLDER/control_tar/postinst). Run it? [Y/n]: " answer
+    read -p "[?] POSTINST script found ("$WORK_FOLDER"/control_tar/postinst). Run it? [Y/n]: " answer
     if [[ -z "$answer" || "$answer" =~ ^[Yy] ]]; then
         echo "[+] Running postinst..."
-        $WORK_FOLDER/control_tar/postinst configure 
+        "$WORK_FOLDER/control_tar/postinst" configure 
         echo "[*] Done."
     fi
     
