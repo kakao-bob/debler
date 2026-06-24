@@ -17,7 +17,7 @@ shift # Сдвигаем аргументы, чтобы обрабатывать
 
 # root check
 # if [[ $EUID -ne 0 ]]; then
-#    echo "[-] Must be run as root."
+#    echo "[-] ERROR: Must be run as root."
 #    exit 1
 # fi
 
@@ -30,3 +30,38 @@ echo ""
 echo "[+] Extracting package into /tmp/.."
 mkdir $WORK_FOLDER
 ar x $FILE_PATH --output=$WORK_FOLDER/
+
+
+echo "[+] Extracting control.."
+mkdir $WORK_FOLDER/control_tar/
+files=($WORK_FOLDER/control.tar.*)
+
+if [ -e "${files[0]}" ]; then
+    echo "Первый найденный файл control: ${files[0]}" > $LOG_FILE
+    tar -xvf "${files[0]}" -C $WORK_FOLDER/control_tar/ > /dev/null 2>&1
+else
+    echo "[-] ERROR: Corrupted package! No control.tar found"
+    exit 1
+fi
+
+echo "----------------------"
+cat $WORK_FOLDER/control_tar/control
+echo "----------------------"
+
+
+
+# echo "[+] Extracting data.."
+# mkdir $WORK_FOLDER/data_tar/
+# files=($WORK_FOLDER/data.tar.*)
+
+# if [ -e "${files[0]}" ]; then
+#     echo "Первый найденный файл data: ${files[0]}" > $LOG_FILE
+#     tar -xvf "${files[0]}" -C $WORK_FOLDER/data_tar/ > /dev/null 2>&1
+# else
+#     echo "[-] ERROR: Corrupted package! No data.tar found"
+#     exit 1
+# fi
+
+echo ""
+echo "---"
+echo "[*] Package installed successfully."
