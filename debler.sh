@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # DebLer - .deb installer for non-debian distros.
-VERSION="0.1.0"
+VERSION="1.0.0"
 
 # checking for args
 if [ $# -eq 0 ]; then
@@ -12,7 +12,7 @@ fi
 
 # Первый аргумент всегда считаем путем к файлу
 FILE_PATH="$1"
-shift # Сдвигаем аргументы, чтобы обрабатывать флаги дальше
+shift # Сдвигаем аргументы
 
 
 #root check
@@ -73,7 +73,7 @@ echo "----------------------"
 cat "$WORK_FOLDER/control_tar/control"
 echo "----------------------"
 
-read -p "Install package? [Y/n]: " response
+read -p "[?] Install package? [Y/n]: " response
 response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
 if [[ -z "$response" || "$response" == "y" || "$response" == "yes" ]]; then
     echo "ok..."
@@ -116,7 +116,7 @@ for folder in "$WORK_FOLDER"/data_tar/*; do
 
 
         if [[ ! "$folder_bn" =~ ^(usr|opt|etc|var)$ ]]; then
-            echo "ERROR: /$folder_bn is not a standard part of a .deb package."
+            echo "[-] ERROR: /$folder_bn is not a standard part of a .deb package."
             echo "This .deb file may be malware or formatted incorrectly. Cancelling install!"
             
             # logging
