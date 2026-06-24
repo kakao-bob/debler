@@ -29,7 +29,9 @@ echo ""
 
 echo "[+] Extracting package into /tmp/.."
 mkdir $WORK_FOLDER
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Strarting extracting.." >> "$LOG_FILE"
 ar x $FILE_PATH --output=$WORK_FOLDER/
+echo "$(date '+%Y-%m-%d %H:%M:%S') - ok" >> "$LOG_FILE"
 
 
 echo "[+] Extracting control.."
@@ -37,7 +39,7 @@ mkdir $WORK_FOLDER/control_tar/
 files=($WORK_FOLDER/control.tar.*)
 
 if [ -e "${files[0]}" ]; then
-    echo "Первый найденный файл control: ${files[0]}" > $LOG_FILE
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - control file: ${files[0]}" >> $LOG_FILE
     tar -xvf "${files[0]}" -C $WORK_FOLDER/control_tar/ > /dev/null 2>&1
 else
     echo "[-] ERROR: Corrupted package! No control.tar found"
@@ -64,7 +66,7 @@ mkdir $WORK_FOLDER/data_tar/
 files=($WORK_FOLDER/data.tar.*)
 
 if [ -e "${files[0]}" ]; then
-    echo "Первый найденный файл data: ${files[0]}" > $LOG_FILE
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - data file: ${files[0]}" >> $LOG_FILE
     tar -xvf "${files[0]}" -C $WORK_FOLDER/data_tar/ > /dev/null 2>&1
 else
     echo "[-] ERROR: Corrupted package! No data.tar found"
