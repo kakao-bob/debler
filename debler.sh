@@ -15,11 +15,11 @@ FILE_PATH="$1"
 shift # Сдвигаем аргументы, чтобы обрабатывать флаги дальше
 
 
-# root check
-# if [[ $EUID -ne 0 ]]; then
-#    echo "[-] ERROR: Must be run as root."
-#    exit 1
-# fi
+root check
+if [[ $EUID -ne 0 ]]; then
+   echo "[-] ERROR: Must be run as root."
+   exit 1
+fi
 
 WORK_FOLDER="/tmp/debler_$(date +%s)"
 LOG_FILE="$WORK_FOLDER/debler.log"
@@ -72,6 +72,10 @@ else
     echo "[-] ERROR: Corrupted package! No data.tar found"
     exit 1
 fi
+
+echo "[+] Copying data to system.."
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Copying data to /.." >> "$LOG_FILE"
+rsync -aHAXx --info=progress2 $WORK_FOLDER/data_tar/ /
 
 echo ""
 echo "---"
