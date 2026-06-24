@@ -144,6 +144,9 @@ if [ $MS_POSTINST -eq 1 ]; then
     
 fi
 
+echo "[+] Cleanup.."
+rm -rf "$WORK_FOLDER"
+
 echo ""
 echo "---"
 echo "[*] Package installed successfully."
