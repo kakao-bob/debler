@@ -150,6 +150,12 @@ _debler_install() {
 
 }
 
+_check_arg() {
+    if [ -z "$1" ]; then
+        echo "[-] Error: a required argument ($2) was not provided!"
+        exit 1
+    fi
+}
 
 # checking for args
 if [ $# -eq 0 ]; then
@@ -161,5 +167,21 @@ fi
 ACTION=$1
 shift
 
-
-_debler_install "123"
+case $ACTION in
+    "-S")
+        _check_arg "$1" "<file.deb>"
+        _debler_install $1
+        ;;
+    "-R")
+        _check_arg "$1" "<package>"
+        echo "WIP"
+        ;;
+    "-Q")
+        echo "WIP"
+        ;;
+    *)
+        # default
+        echo "[-] Error: Wrong action."
+        echo -e $HELP
+        ;;
+esac
