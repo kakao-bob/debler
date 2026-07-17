@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # DebLer - .deb installer for non-debian distros.
-VERSION="1.0.0"
+VERSION="1.1.0"
+HELP="Usage:\n\tdebler -S <file.deb>  (install debian package)\n\tdebler -R <package> (remove installed package)\n\tdebler -Q (show all installed packages)\n\tdebler -h (show help)"
 
 # checking for args
 if [ $# -eq 0 ]; then
     echo "[-] Error: no arguments provided!"
-    echo "Use: debler <file.deb>"
+    echo -e $HELP
     exit 1
 fi
 
@@ -118,10 +119,10 @@ for folder in "$WORK_FOLDER"/data_tar/*; do
         if [[ ! "$folder_bn" =~ ^(usr|opt|etc|var)$ ]]; then
             echo "[-] ERROR: /$folder_bn is not a standard part of a .deb package."
             echo "This .deb file may be malware or formatted incorrectly. Cancelling install!"
-            
+
             # logging
             echo "$(date '+%Y-%m-%d %H:%M:%S') - CRITICAL: Suspicious folder /$folder_bn found. Aborting." >> "$LOG_FILE"
-            
+
             exit 1
         fi
     fi
@@ -138,10 +139,10 @@ if [ $MS_POSTINST -eq 1 ]; then
     read -p "[?] POSTINST script found ("$WORK_FOLDER"/control_tar/postinst). Run it? [Y/n]: " answer
     if [[ -z "$answer" || "$answer" =~ ^[Yy] ]]; then
         echo "[+] Running postinst..."
-        "$WORK_FOLDER/control_tar/postinst" configure 
+        "$WORK_FOLDER/control_tar/postinst" configure
         echo "[*] Done."
     fi
-    
+
 fi
 
 echo "[+] Cleanup.."
