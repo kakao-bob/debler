@@ -11,10 +11,15 @@ _debler_install() {
     FILE_PATH="$1"
     shift # Сдвигаем аргументы
 
+    if [ ! -e $FILE_PATH ]; then
+        echo "[-] ERROR: File not exist."
+        exit 1
+    fi
+
     #root check
     if [[ $EUID -ne 0 ]]; then
-    echo "[-] ERROR: Must be run as root."
-    exit 1
+        echo "[-] ERROR: Must be run as root."
+        exit 1
     fi
 
     WORK_FOLDER="/tmp/debler_$(date +%s)"
