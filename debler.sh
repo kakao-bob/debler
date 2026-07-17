@@ -70,11 +70,15 @@ _debler_install() {
         esac
     done
 
+    control_file="$WORK_FOLDER/control_tar/control"
+    PKG_NAME=$(grep "Package: " $control_file | cut -c 10-)
+    PKG_VERSION=$(grep "Version: " $control_file | cut -c 10-)
+
     echo "----------------------"
-    cat "$WORK_FOLDER/control_tar/control"
+    cat $control_file
     echo "----------------------"
 
-    read -p "[?] Install package? [Y/n]: " response
+    read -p "[?] Install package '$PKG_NAME-$PKG_VERSION'? [Y/n]: " response
     response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
     if [[ -z "$response" || "$response" == "y" || "$response" == "yes" ]]; then
         echo "ok..."
