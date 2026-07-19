@@ -149,6 +149,16 @@ _debler_install() {
 
     fi
 
+    # database
+    echo "[+] Updating database.."
+    DB_FOLDER="/var/lib/debler/local/$PKG_NAME-$PKG_VERSION/"
+    mkdir -p "$DB_FOLDER"
+
+    find "$WORK_FOLDER/data_tar/" -type f > "$DB_FOLDER/files" # finding all files which installed
+    sed -i "s|$WORK_FOLDER/data_tar||g" "$DB_FOLDER/files" # removing substring
+    cp "$WORK_FOLDER/control_tar/postrm" "$DB_FOLDER/postrm" 2>/dev/null # copying MS if exist
+
+
     echo "[+] Cleanup.."
     rm -rf "$WORK_FOLDER"
 
