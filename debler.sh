@@ -5,6 +5,22 @@ VERSION="1.1.0"
 HELP="Usage:\n\tdebler -S <file.deb>  (install debian package)\n\tdebler -R <package> (remove installed package)\n\tdebler -Q (show all installed packages)\n\tdebler -h (show help)"
 DB_ROOT="/var/lib/debler/local"
 
+
+# show installed packages
+_debler_query() {
+    mkdir -p "$DB_ROOT"
+
+    for package_ in $(find "$DB_ROOT" -type d -name "$1*" -exec basename {} \;); do
+        if [[ "$package_" == "local" ]]; then
+            continue
+        fi
+
+        name="${package_%%-*}" # left part
+        ver="${package_#*-}" # right part
+        echo "$name ($ver)"
+    done
+}
+
 # install debian package
 _debler_install() {
 
@@ -170,19 +186,6 @@ _debler_install() {
 
 }
 
-# show installed packages
-_debler_query() {
-
-    for package_ in $(find "$DB_ROOT" -type d -name "$1*" -exec basename {} \;); do
-        if [[ "$package_" == "local" ]]; then
-            continue
-        fi
-
-        name="${package_%%-*}" # left part
-        ver="${package_#*-}" # right part
-        echo "$name ($ver)"
-    done
-}
 
 _check_arg() {
     if [ -z "$1" ]; then
