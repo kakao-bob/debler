@@ -2,7 +2,7 @@
 
 # DebLer - .deb installer for non-debian distros.
 VERSION="1.1.0"
-HELP="Usage:\n\tdebler -S <file.deb>  (install debian package)\n\tdebler -R <package> (remove installed package)\n\tdebler -Q (show all installed packages)\n\tdebler -h (show help)"
+HELP="Usage:\n\tdebler -S <file.deb>  (install debian package)\n\tdebler -R <package> (remove installed package)\n\tdebler -Q (show all installed packages)\n\t├── debler -Q <search> (show requested packages)\n\t└── [--raw/--name] (formatting)\n\tdebler -h (show help)"
 DB_ROOT="/var/lib/debler/local"
 
 _check_root() {
@@ -329,6 +329,9 @@ case $ACTION in
         ;;
     "-Q")
         _debler_query "$1" "$2"
+        ;;
+    "-h")
+        echo -e $HELP
         ;;
     *)
         # default
