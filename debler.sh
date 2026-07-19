@@ -228,7 +228,7 @@ _debler_remove() {
 
     DB_FOLDER_RM="$DB_ROOT/$exist_rm"
 
-    echo "[!] Next files will be deleted:"
+    echo "[!] Next files of '$exist_rm' will be deleted:"
     echo "----------------------"
     cat "$DB_FOLDER_RM/files"
     echo "----------------------"
@@ -329,6 +329,10 @@ case $ACTION in
         ;;
     "-Q")
         _debler_query "$1" "$2"
+        ;;
+    "-Ql")
+        _check_arg "$1" "<package>"
+        cat "$DB_ROOT/$(_debler_query "$1" "--raw")/files"
         ;;
     "-h")
         echo -e $HELP
