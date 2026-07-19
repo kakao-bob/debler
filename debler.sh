@@ -3,6 +3,7 @@
 # DebLer - .deb installer for non-debian distros.
 VERSION="1.1.0"
 HELP="Usage:\n\tdebler -S <file.deb>  (install debian package)\n\tdebler -R <package> (remove installed package)\n\tdebler -Q (show all installed packages)\n\tdebler -h (show help)"
+DB_ROOT="/var/lib/debler/local"
 
 # install debian package
 _debler_install() {
@@ -151,7 +152,7 @@ _debler_install() {
 
     # database
     echo "[+] Updating database.."
-    DB_FOLDER="/var/lib/debler/local/$PKG_NAME-$PKG_VERSION/"
+    DB_FOLDER="$DB_ROOT/$PKG_NAME-$PKG_VERSION/"
     mkdir -p "$DB_FOLDER"
 
     find "$WORK_FOLDER/data_tar/" -type f > "$DB_FOLDER/files" # finding all files which installed
@@ -167,6 +168,20 @@ _debler_install() {
     echo "[*] Package installed successfully."
     exit 0
 
+}
+
+# show installed packages
+_debler_query() {
+
+    for package_ in $(find "$DB_ROOT" -type d -name "$1*" -exec basename {} \;); do
+        if [[ "$package_" == "local" ]]; then
+            continue
+        fi
+
+        name="${package_%%-*}" # left part
+        ver="${package_#*-}" # right part
+        echo "$name ($ver)"
+    done
 }
 
 _check_arg() {
@@ -196,7 +211,7 @@ case $ACTION in
         echo "WIP"
         ;;
     "-Q")
-        echo "WIP"
+        _debler_query "$1"
         ;;
     *)
         # default
