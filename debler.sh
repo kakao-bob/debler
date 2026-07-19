@@ -5,6 +5,13 @@ VERSION="1.1.0"
 HELP="Usage:\n\tdebler -S <file.deb>  (install debian package)\n\tdebler -R <package> (remove installed package)\n\tdebler -Q (show all installed packages)\n\tdebler -h (show help)"
 DB_ROOT="/var/lib/debler/local"
 
+_check_root() {
+    #root check
+    if [[ $EUID -ne 0 ]]; then
+        echo "[-] ERROR: Must be run as root."
+        exit 1
+    fi
+}
 
 # show installed packages
 _debler_query() {
@@ -17,7 +24,19 @@ _debler_query() {
 
         name="${package_%%-*}" # left part
         ver="${package_#*-}" # right part
-        echo "$name ($ver)"
+        case $2 in
+            "--raw")
+                echo $package_
+                ;;
+            "--name")
+                echo $name
+                ;;
+            *)
+                # default
+                echo "$name ($ver)"
+                ;;
+        esac
+
     done
 }
 
@@ -33,11 +52,7 @@ _debler_install() {
         exit 1
     fi
 
-    #root check
-    if [[ $EUID -ne 0 ]]; then
-        echo "[-] ERROR: Must be run as root."
-        exit 1
-    fi
+    _check_root
 
     WORK_FOLDER="/tmp/debler_$(date +%s)"
     LOG_FILE="$WORK_FOLDER/debler.log"
@@ -95,7 +110,15 @@ _debler_install() {
     cat $control_file
     echo "----------------------"
 
-    read -p "[?] Install package '$PKG_NAME-$PKG_VERSION'? [Y/n]: " response
+    # if already installed
+    exist_=$(_debler_query "$PKG_NAME")
+    if [ ! -z "$exist_" ]; then
+        echo "[!] Package $PKG_NAME already installed!"
+        read -p "[?] Remove '$exist_' and install '$PKG_NAME ($PKG_VERSION)'? [Y/n]: " response
+    else
+        read -p "[?] Install package '$PKG_NAME-$PKG_VERSION'? [Y/n]: " response
+    fi
+
     response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
     if [[ -z "$response" || "$response" == "y" || "$response" == "yes" ]]; then
         echo "ok..."
@@ -103,6 +126,10 @@ _debler_install() {
     else
         echo "[-] Cancelled."
         exit 0
+    fi
+
+    if [ ! -z "$exist_" ]; then
+        _debler_remove $PKG_NAME "ok"
     fi
 
     # preinst
@@ -174,6 +201,7 @@ _debler_install() {
     find "$WORK_FOLDER/data_tar/" -type f > "$DB_FOLDER/files" # finding all files which installed
     sed -i "s|$WORK_FOLDER/data_tar||g" "$DB_FOLDER/files" # removing substring
     cp "$WORK_FOLDER/control_tar/postrm" "$DB_FOLDER/postrm" 2>/dev/null # copying MS if exist
+    cp "$WORK_FOLDER/control_tar/prerm" "$DB_FOLDER/prerm" 2>/dev/null
 
 
     echo "[+] Cleanup.."
@@ -186,6 +214,92 @@ _debler_install() {
 
 }
 
+_debler_remove() {
+    exist_rm=$(_debler_query "$1" "--raw")
+
+
+    if [ -z "$exist_rm" ]; then
+        echo "[-] Error: package '$1' not installed."
+        exit 1
+    fi
+
+
+    _check_root
+
+    DB_FOLDER_RM="$DB_ROOT/$exist_rm"
+
+    echo "[!] Next files will be deleted:"
+    echo "----------------------"
+    cat "$DB_FOLDER_RM/files"
+    echo "----------------------"
+
+    read -p "[?] Okay [Y/n]? " answer
+    if [[ -z "$answer" || "$answer" =~ ^[Yy] ]]; then
+        echo "ok.."
+    else
+        echo "[-] Cancelled."
+        exit 1
+    fi
+
+
+    MS_PRERM=0
+    MS_POSTRM=0
+    # CHECKING maintscripts
+    for file in $DB_FOLDER_RM/*; do
+        # Проверяем, существует ли файл
+        [ -e "$file" ] || continue
+
+        case $(basename $file) in
+            "prerm")
+                MS_PRERM=1
+                ;;
+            "postrm")
+                MS_POSTRM=1
+                ;;
+            *)
+                # default
+                ;;
+        esac
+    done
+
+    # pre remove MS
+    if [ $MS_PRERM -eq 1 ]; then
+        read -p "[?] PRERM script found ($DB_FOLDER_RM/prerm). Run it? [Y/n]: " answer
+        if [[ -z "$answer" || "$answer" =~ ^[Yy] ]]; then
+            echo "[+] Running prerm..."
+            "$DB_FOLDER_RM/prerm" remove
+            echo "[*] Done."
+        fi
+    fi
+
+    ## Deleting files
+    for file in $(cat "$DB_FOLDER_RM/files"); do
+        if [ -z "$file" ]; then
+            continue
+        fi
+        if [[ "$file" == "/etc/*" ]]; then
+            continue # do NOT touching etc configs
+        fi
+
+        echo "rm: $file"
+        rm "$file"
+    done
+
+    # pre remove MS
+    if [ $MS_POSTRM -eq 1 ]; then
+        read -p "[?] POSTRM script found ($DB_FOLDER_RM/postrm). Run it? [Y/n]: " answer
+        if [[ -z "$answer" || "$answer" =~ ^[Yy] ]]; then
+            echo "[+] Running postrm..."
+            "$DB_FOLDER_RM/postrm" remove
+            echo "[*] Done."
+        fi
+    fi
+
+    echo "[+] Updating database.."
+    rm -rf "$DB_FOLDER_RM"
+
+    echo "[+] '$1' removed."
+}
 
 _check_arg() {
     if [ -z "$1" ]; then
@@ -211,10 +325,10 @@ case $ACTION in
         ;;
     "-R")
         _check_arg "$1" "<package>"
-        echo "WIP"
+        _debler_remove "$1"
         ;;
     "-Q")
-        _debler_query "$1"
+        _debler_query "$1" "$2"
         ;;
     *)
         # default
