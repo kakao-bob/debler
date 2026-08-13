@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # DebLer - .deb installer for non-debian distros.
-VERSION="1.1.0"
+VERSION="1.1.1"
 HELP="Usage:\n\tdebler -S <file.deb>  (install debian package)\n\tdebler -R <package> (remove installed package)\n\tdebler -Q (show all installed packages)\n\t├── debler -Q <search> (show requested packages)\n\t└── [--raw/--name] (formatting)\n\tdebler -h (show help)"
 DB_ROOT="/var/lib/debler/local"
 
@@ -42,6 +42,11 @@ _debler_query() {
 
 # install debian package
 _debler_install() {
+    # checking for rsync
+    if ! command -v rsync &> /dev/null; then
+        echo "[-] ERROR: rsync is not installed."
+        exit 1
+    fi
 
     # Первый аргумент всегда считаем путем к файлу
     FILE_PATH="$1"
