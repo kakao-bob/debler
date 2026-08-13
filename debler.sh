@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # DebLer - .deb installer for non-debian distros.
-VERSION="1.1.1"
-HELP="Usage:\n\tdebler -S <file.deb>  (install debian package)\n\tdebler -R <package> (remove installed package)\n\tdebler -Q (show all installed packages)\n\t├── debler -Q <search> (show requested packages)\n\t└── [--raw/--name] (formatting)\n\tdebler -h (show help)"
+VERSION="1.1.2"
+HELP="Usage:\n\tdebler -S <file.deb>  (install debian package)\n\tdebler -R <package> (remove installed package)\n\tdebler -Q (show all installed packages)\n\t├── debler -Q <search> (show requested packages)\n\t└── [--raw/--name] (formatting)\n\tdebler -h (show help)\n\tdebler --version (show version)"
 DB_ROOT="/var/lib/debler/local"
 
 _check_root() {
@@ -341,6 +341,15 @@ case $ACTION in
         ;;
     "-h")
         echo -e $HELP
+        ;;
+    "--version")
+        cat << EOF
+████  █████ ████  █     █████ ████      DebLer v$VERSION
+█   █ █     █   █ █     █     █   █     Copyright (C) 2026 Zupy Project
+█   █ ████  ████  █     ████  ████      Copyright (C) 2026 kakao.bob
+█   █ █     █   █ █     █     █  █
+████  █████ ████  █████ █████ █   █     ISC license
+EOF
         ;;
     *)
         # default
