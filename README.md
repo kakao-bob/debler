@@ -41,5 +41,8 @@ debler -h
 ```
 `*` - optional parameter
 
+## Roadmap
+ - [ ] Dependencies control
+
 ## License
 This repository is licensed under the ISC License. Read more: [LICENSE](/LICENSE)
